@@ -188,11 +188,11 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .fullscreen-preview.show{display:flex;}
 .fs-screen{width:100vw;height:100vh;position:relative;overflow:hidden;}
 .fs-overlay{position:absolute;inset:0;}
-.fs-content{position:absolute;top:0;left:0;right:0;bottom:32%;display:flex;flex-direction:column;justify-content:flex-start;padding:15vw 7vw 4vw;overflow-y:scroll;scrollbar-width:none;}
+.fs-content{position:absolute;top:0;left:0;right:0;bottom:32%;display:flex;flex-direction:column;justify-content:flex-start;padding:15vw 12vw 4vw;overflow-y:scroll;scrollbar-width:none;}
 .fs-content::-webkit-scrollbar{display:none;}
 .fs-pill{display:inline-flex;background:#D4614E;padding:3px 10px;border-radius:3px;margin-bottom:4vw;align-self:flex-start;}
 .fs-pill-text{font-size:3vw;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;}
-.fs-headline{font-family:'DM Serif Display',serif;font-size:10vw;line-height:1.15;margin-bottom:4vw;}
+.fs-headline{font-family:'DM Serif Display',serif;font-size:8vw;line-height:1.15;margin-bottom:4vw;}
 .fs-subline{font-size:4vw;font-style:italic;line-height:1.4;opacity:0.8;}
 .fs-logo{position:absolute;bottom:22vw;right:6vw;background:#D4614E;padding:3px 8px;border-bottom:1.5px double #fff;}
 .fs-logo-t{font-family:Georgia,serif;font-size:3vw;font-weight:700;color:#fff;display:block;}
@@ -1118,7 +1118,7 @@ function fsTypeSimple(text, el, speed, done) {
 function fsTypeScrolling(text, el, container, speed) {
   // Type full caption continuously, scrolling container up as text grows
   let i = 0;
-  el.style.fontSize = '4.8vw';
+  el.style.fontSize = '4.2vw';
   el.style.lineHeight = '1.75';
   el.style.fontStyle = 'normal';
   el.style.opacity = '1';
