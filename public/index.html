@@ -1112,7 +1112,7 @@ function fsTypeSimple(text, el, speed, done) {
 }
 
 function fsTypeScrolling(text, speed) {
-  const textCol = (selectedColour === 'offwhite') ? '#0D1F35' : '#F8FAFC';
+  const textCol = (selectedColour === 'offwhite' || selectedColour === 'coral') ? '#0D1F35' : '#F8FAFC';
   const area = document.getElementById('fs-caption-area');
   const contentLayer = document.getElementById('fs-content');
   area.innerHTML = '';
