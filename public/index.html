@@ -205,7 +205,8 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .fs-side-icon{display:flex;flex-direction:column;align-items:center;gap:1vw;}
 .fs-side-circle{width:10vw;height:10vw;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:5vw;color:#fff;}
 .fs-side-lbl{font-size:2.5vw;color:rgba(255,255,255,0.8);}
-.fs-close{position:absolute;top:4vw;right:4vw;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:5vw;width:10vw;height:10vw;border-radius:50%;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
+.fs-close{position:absolute;top:4vw;right:4vw;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:5vw;width:10vw;height:10vw;border-radius:50%;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity 3s ease;}
+.fs-close.fade{opacity:0;}
 .fs-cursor{display:inline-block;width:0.5vw;height:1em;background:#D4614E;vertical-align:text-bottom;animation:blink 0.7s step-end infinite;}
 .btn-fullscreen{width:100%;padding:0.65rem;background:#D4614E;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;margin-bottom:0.5rem;}
 
@@ -467,7 +468,8 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
       <div class="fs-headline" id="fs-headline"><span id="fs-typed-h"></span><span class="fs-cursor" id="fs-cur1"></span></div>
       <div class="fs-subline" id="fs-subline"><span id="fs-typed-s"></span><span class="fs-cursor" id="fs-cur2" style="display:none;"></span></div>
     </div>
-    <button class="fs-close" onclick="closeFullscreen()">✕</button>
+    <button class="fs-close" id="fs-close-btn" onclick="closeFullscreen()">✕</button>
+    <div style="position:absolute;inset:0;z-index:5;" onclick="fsShowClose()"></div>
   </div>
 </div>
 
@@ -1048,6 +1050,10 @@ function openFullscreen() {
   sl.style.color = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
 
   document.getElementById('fs-preview').classList.add('show');
+  const closeBtn = document.getElementById('fs-close-btn');
+  closeBtn.classList.remove('fade');
+  clearTimeout(window.fadeBtnT);
+  window.fadeBtnT = setTimeout(() => closeBtn.classList.add('fade'), 3000);
 
   // Request fullscreen on mobile
   const el = document.getElementById('fs-preview');
@@ -1075,6 +1081,13 @@ function openFullscreen() {
     document.getElementById('fs-typed-s').textContent = subline;
     document.getElementById('fs-cur1').style.display = 'none';
   }
+}
+
+function fsShowClose() {
+  const btn = document.getElementById('fs-close-btn');
+  btn.classList.remove('fade');
+  clearTimeout(window.fadeBtnT);
+  window.fadeBtnT = setTimeout(() => btn.classList.add('fade'), 3000);
 }
 
 function closeFullscreen() {
