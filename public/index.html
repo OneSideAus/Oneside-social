@@ -466,7 +466,7 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
     <div class="fs-content" id="fs-content">
       <div class="fs-pill"><span class="fs-pill-text" id="fs-label"></span></div>
       <div class="fs-headline" id="fs-headline"><span id="fs-typed-h"></span><span class="fs-cursor" id="fs-cur1"></span></div>
-      <div class="fs-subline" id="fs-subline"><span id="fs-typed-s"></span><span class="fs-cursor" id="fs-cur2" style="display:none;"></span></div>
+      <div id="fs-caption-area"></div>
     </div>
     <button class="fs-close" id="fs-close-btn" onclick="closeFullscreen()">✕</button>
     <div style="position:absolute;inset:0;z-index:5;" onclick="fsShowClose()"></div>
@@ -1059,25 +1059,22 @@ function openFullscreen() {
   if(el.requestFullscreen) el.requestFullscreen();
   else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 
-  // Start animation
+  // Reset
   if(fsAnimT) clearTimeout(fsAnimT);
   document.getElementById('fs-typed-h').innerHTML = '';
-  document.getElementById('fs-typed-s').textContent = '';
+  document.getElementById('fs-caption-area').innerHTML = '';
   document.getElementById('fs-cur1').style.display = 'inline-block';
-  document.getElementById('fs-cur2').style.display = 'none';
+  const headlineTextCol = (selectedColour === 'offwhite' || selectedColour === 'coral') ? '#0D1F35' : '#F8FAFC';
+  document.getElementById('fs-headline').style.color = headlineTextCol;
 
   if(selectedFormat === 'typewriter') {
     const caption = document.getElementById('edit-caption').value;
     fsTypeLines(headline, document.getElementById('fs-typed-h'), 55, () => {
       document.getElementById('fs-cur1').style.display = 'none';
-      document.getElementById('fs-cur2').style.display = 'inline-block';
-      fsAnimT = setTimeout(() => {
-        fsTypeScrolling(caption, document.getElementById('fs-typed-s'), document.getElementById('fs-subline'), 22);
-      }, 600);
+      fsAnimT = setTimeout(() => fsTypeScrolling(caption, 22), 600);
     });
   } else {
     document.getElementById('fs-typed-h').innerHTML = headline.replace(/\n/g,'<br>');
-    document.getElementById('fs-typed-s').textContent = subline;
     document.getElementById('fs-cur1').style.display = 'none';
   }
 }
@@ -1114,47 +1111,37 @@ function fsTypeSimple(text, el, speed, done) {
   next();
 }
 
-function fsTypeScrolling(text, el, container, speed) {
+function fsTypeScrolling(text, speed) {
   const textCol = (selectedColour === 'offwhite' || selectedColour === 'coral') ? '#0D1F35' : '#F8FAFC';
-
-  // Split caption into paragraphs and type each into its own div
-  const paragraphs = text.split(/\n\n+/).filter(p => p.trim());
+  const area = document.getElementById('fs-caption-area');
   const contentLayer = document.getElementById('fs-content');
+  area.innerHTML = '';
 
-  // Remove old para divs
-  contentLayer.querySelectorAll('.fs-para').forEach(p => p.remove());
-  document.getElementById('fs-cur2').style.display = 'inline-block';
-
+  const paragraphs = text.split(/\n\n+/).filter(p => p.trim());
   let paraIndex = 0;
 
   function typeNextPara() {
-    if(paraIndex >= paragraphs.length) {
-      document.getElementById('fs-cur2').style.display = 'none';
-      return;
-    }
+    if(paraIndex >= paragraphs.length) return;
 
-    // Create a new paragraph div
     const paraDiv = document.createElement('div');
-    paraDiv.className = 'fs-para';
     paraDiv.style.cssText = `font-size:4.2vw;line-height:1.75;color:${textCol};margin-bottom:5vw;`;
-    contentLayer.appendChild(paraDiv);
+    area.appendChild(paraDiv);
 
     const paraText = paragraphs[paraIndex]; paraIndex++;
     let i = 0;
 
     function nextChar() {
       if(i >= paraText.length) {
-        // Pause between paragraphs then start next
         contentLayer.scrollTo({ top: contentLayer.scrollHeight, behavior: 'smooth' });
-        fsAnimT = setTimeout(typeNextPara, speed * 10);
+        fsAnimT = setTimeout(typeNextPara, speed * 12);
         return;
       }
       const ch = paraText[i]; i++;
       paraDiv.textContent += ch;
       contentLayer.scrollTo({ top: contentLayer.scrollHeight, behavior: 'smooth' });
       const pause = (ch === '.' || ch === '!' || ch === '?') ? speed * 8
-                  : (ch === ',') ? speed * 4
-                  : speed + Math.random() * 15 - 7;
+                  : (ch === ',') ? speed * 3
+                  : speed + Math.random() * 12 - 6;
       fsAnimT = setTimeout(nextChar, pause);
     }
     nextChar();
