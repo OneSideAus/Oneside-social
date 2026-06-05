@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneSide Content Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f0f2f5;color:#0D1F35;min-height:100vh;}
+.topbar{background:#0D1F35;padding:0.75rem 1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.logo-badge{background:#D4614E;color:#fff;font-family:Georgia,serif;font-size:0.8rem;font-weight:700;padding:0.3rem 0.7rem;border-bottom:2px double #fff;}
+.logo-badge span{display:block;font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;}
+.topbar-title{color:#fff;font-family:'DM Serif Display',serif;font-size:1.1rem;}
+.topbar-sub{color:rgba(255,255,255,0.5);font-size:0.72rem;margin-top:1px;}
+
+.container{max-width:900px;margin:0 auto;padding:1.5rem;}
+
+/* STEP INDICATORS */
+.steps{display:flex;gap:0;margin-bottom:1.5rem;background:#fff;border-radius:10px;overflow:hidden;border:0.5px solid #e0e0e0;}
+.step-tab{flex:1;padding:0.6rem 0.5rem;text-align:center;font-size:0.68rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#999;cursor:pointer;border-right:0.5px solid #e0e0e0;transition:all 0.2s;}
+.step-tab:last-child{border-right:none;}
+.step-tab.active{background:#0D1F35;color:#fff;}
+.step-tab.done{background:#f0f7ff;color:#1B5E8A;}
+
+/* CARDS */
+.card{background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;padding:1.25rem;margin-bottom:1rem;}
+.section-label{font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1B5E8A;border-left:3px solid #D4614E;padding-left:0.6rem;margin-bottom:0.85rem;}
+
+/* STEP 1 — SETUP */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;}
+.field-group{display:flex;flex-direction:column;gap:0.3rem;}
+label.field-label{font-size:0.65rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#1B5E8A;}
+select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sans-serif;font-size:0.82rem;color:#0D1F35;background:#F8FAFC;border:0.5px solid #d0d0d0;border-radius:6px;padding:0.45rem 0.55rem;height:36px;}
+
+/* FORMAT TILES */
+.format-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;margin-bottom:0.85rem;}
+.format-tile{border:1.5px solid #e0e0e0;border-radius:8px;padding:0.65rem 0.4rem;text-align:center;cursor:pointer;transition:all 0.15s;background:#F8FAFC;}
+.format-tile:hover{border-color:#1B5E8A;}
+.format-tile.selected{border-color:#D4614E;background:#fff7f5;}
+.format-icon{font-size:1.4rem;margin-bottom:0.3rem;}
+.format-name{font-size:0.65rem;font-weight:600;color:#0D1F35;}
+
+/* COLOUR TILES */
+.colour-grid{display:flex;gap:0.6rem;flex-wrap:wrap;}
+.colour-tile{width:44px;height:44px;border-radius:8px;cursor:pointer;border:2.5px solid transparent;transition:all 0.15s;position:relative;}
+.colour-tile.selected{border-color:#fff;box-shadow:0 0 0 2px #D4614E;}
+.colour-tile .colour-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:0.55rem;white-space:nowrap;color:#666;}
+
+/* PILLAR TILES */
+.pillar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;}
+.pillar-tile{border:1.5px solid #e0e0e0;border-radius:8px;padding:0.5rem 0.3rem;text-align:center;cursor:pointer;transition:all 0.15s;background:#F8FAFC;font-size:0.68rem;font-weight:600;color:#0D1F35;}
+.pillar-tile:hover{border-color:#1B5E8A;}
+.pillar-tile.selected{border-color:#D4614E;background:#fff7f5;color:#D4614E;}
+
+/* GENERATE BTN */
+.btn-generate{width:100%;padding:0.8rem;background:#D4614E;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;margin-top:0.5rem;transition:all 0.2s;}
+.btn-generate:hover{background:#b84e3c;}
+.btn-generate:disabled{background:#ccc;cursor:not-allowed;}
+
+/* STEP 2 — OPTIONS */
+.options-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.85rem;}
+.option-card{border:1.5px solid #e0e0e0;border-radius:10px;padding:0.85rem;cursor:pointer;transition:all 0.15s;background:#F8FAFC;}
+.option-card:hover{border-color:#1B5E8A;background:#f0f7ff;}
+.option-card.selected{border-color:#D4614E;background:#fff7f5;}
+.option-num{font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#D4614E;margin-bottom:0.4rem;}
+.option-headline{font-family:'DM Serif Display',serif;font-size:0.85rem;color:#0D1F35;margin-bottom:0.4rem;line-height:1.3;}
+.option-subline{font-size:0.7rem;color:#666;font-style:italic;margin-bottom:0.5rem;line-height:1.4;}
+.option-caption{font-size:0.68rem;color:#888;line-height:1.5;max-height:60px;overflow:hidden;}
+.btn-use{width:100%;margin-top:0.65rem;padding:0.4rem;background:#0D1F35;color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:600;cursor:pointer;}
+.btn-use:hover{background:#1B5E8A;}
+.btn-regen{padding:0.5rem 1.2rem;background:transparent;color:#1B5E8A;border:0.5px solid #1B5E8A;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;margin-top:0.85rem;}
+
+/* STEP 3 — REVIEW */
+.review-layout{display:grid;grid-template-columns:170px 1fr;gap:1.25rem;align-items:start;}
+
+/* PHONE */
+.phone{width:170px;background:#111;border-radius:28px;padding:7px;box-shadow:0 0 0 1px #333;flex-shrink:0;}
+.screen{width:100%;aspect-ratio:9/16;border-radius:22px;overflow:hidden;position:relative;}
+
+/* Typewriter format */
+.fmt-typewriter{background:#0D1F35;}
+/* Block colour — set via JS */
+.fmt-block{}
+/* Image overlay */
+.fmt-image{background-size:cover;background-position:center;}
+
+.overlay{position:absolute;inset:0;opacity:0.82;}
+
+.tiktok-ui{position:absolute;top:0;left:0;right:0;padding:10px 10px 0;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.tiktok-back{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;}
+.back-arrow{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-right:6px solid rgba(255,255,255,0.85);margin-left:-2px;}
+.tiktok-side{position:absolute;right:8px;bottom:60px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:10;}
+.side-icon{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.side-circle{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;}
+.side-lbl{font-size:6px;color:rgba(255,255,255,0.8);}
+.tiktok-bottom{position:absolute;bottom:0;left:0;right:0;height:52px;background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);display:flex;align-items:flex-end;padding:0 10px 8px;z-index:10;}
+.profile-row{display:flex;align-items:center;gap:5px;flex:1;}
+.avatar{width:20px;height:20px;border-radius:50%;background:#D4614E;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600;color:#fff;}
+.handle{font-size:7px;color:#fff;font-weight:500;}
+.follow-btn{background:#D4614E;border:none;color:#fff;font-size:6px;font-weight:700;padding:3px 7px;border-radius:3px;}
+.content-layer{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:14px 12px 60px;z-index:5;}
+.pill{display:inline-flex;background:#D4614E;padding:2px 6px;border-radius:2px;margin-bottom:8px;align-self:flex-start;}
+.pill-text{font-size:6px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;}
+.headline-preview{font-family:'DM Serif Display',serif;font-size:16px;line-height:1.2;margin-bottom:8px;}
+.subline-preview{font-size:7px;font-style:italic;line-height:1.4;opacity:0.75;}
+.logo-sm{position:absolute;bottom:58px;right:10px;background:#D4614E;padding:2px 5px;border-bottom:1px double #fff;z-index:10;}
+.logo-sm-t{font-family:Georgia,serif;font-size:5px;font-weight:700;color:#fff;display:block;}
+.logo-sm-s{font-family:Georgia,serif;font-size:3.5px;letter-spacing:0.15em;text-transform:uppercase;color:#fff;display:block;}
+.cursor{display:inline-block;width:2px;height:0.9em;background:#D4614E;vertical-align:text-bottom;animation:blink 0.7s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* CAROUSEL PREVIEW */
+.carousel-screen{position:absolute;inset:0;display:flex;overflow:hidden;}
+.carousel-slide{min-width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:16px 12px;transition:transform 0.3s ease;}
+.carousel-dots{position:absolute;bottom:56px;left:0;right:0;display:flex;justify-content:center;gap:3px;z-index:10;}
+.carousel-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.4);}
+.carousel-dot.active{background:#fff;}
+
+/* EDIT PANEL */
+.editable-block{background:#F8FAFC;border:0.5px solid #e0e0e0;border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.65rem;}
+.edit-label{font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#D4614E;margin-bottom:0.4rem;}
+.edit-field{width:100%;font-family:'DM Sans',sans-serif;font-size:0.78rem;color:#0D1F35;background:#fff;border:0.5px solid #d0d0d0;border-radius:5px;padding:0.4rem 0.5rem;resize:vertical;line-height:1.5;}
+.edit-field.headline{font-family:'DM Serif Display',serif;font-size:0.9rem;min-height:80px;}
+.edit-field.caption{min-height:100px;}
+.char-count{font-size:0.62rem;color:#888;text-align:right;margin-top:2px;}
+.hashtag-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:0.3rem;}
+.ht{font-size:0.68rem;background:#EBF2F8;color:#1B5E8A;padding:2px 7px;border-radius:4px;font-weight:500;cursor:pointer;}
+.ht:hover{background:#fdf3f1;color:#993c2a;text-decoration:line-through;}
+
+/* SCHEDULE */
+.schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-bottom:0.65rem;}
+
+/* ACTIONS */
+.action-row{display:flex;gap:0.6rem;margin-top:0.75rem;flex-wrap:wrap;}
+.btn-approve{flex:1;padding:0.65rem;background:#0D1F35;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-approve:hover{background:#1B5E8A;}
+.btn-approve:disabled{background:#aaa;cursor:not-allowed;}
+.btn-back{padding:0.65rem 1rem;background:transparent;color:#1B5E8A;border:0.5px solid #1B5E8A;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;}
+
+/* BANNER */
+.approved-banner{display:none;background:#D4EDDA;border:0.5px solid #a0d9b5;border-radius:10px;padding:0.85rem 1rem;margin-top:0.75rem;text-align:center;}
+.approved-banner.show{display:block;}
+.approved-title{font-family:'DM Serif Display',serif;font-size:1rem;color:#1a6e38;margin-bottom:0.3rem;}
+.approved-detail{font-size:0.75rem;color:#1a6e38;line-height:1.6;}
+.copy-all-btn{margin-top:0.6rem;padding:0.45rem 1rem;background:#1a6e38;color:#fff;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;}
+
+/* LOADING */
+.loading{text-align:center;padding:2rem;color:#666;}
+.spinner{width:36px;height:36px;border:3px solid #e0e0e0;border-top-color:#D4614E;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 0.75rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* HISTORY */
+.history-item{border:0.5px solid #e0e0e0;border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.5rem;background:#F8FAFC;}
+.history-item-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.history-meta{font-size:0.68rem;color:#888;}
+.history-headline{font-family:'DM Serif Display',serif;font-size:0.88rem;color:#0D1F35;margin-top:0.2rem;}
+.history-body{display:none;margin-top:0.75rem;border-top:0.5px solid #e0e0e0;padding-top:0.75rem;}
+.history-body.open{display:block;}
+.history-caption{font-size:0.75rem;color:#444;line-height:1.6;white-space:pre-wrap;background:#fff;border:0.5px solid #e0e0e0;border-radius:6px;padding:0.6rem;margin-bottom:0.5rem;}
+.history-tags{font-size:0.7rem;color:#1B5E8A;margin-bottom:0.65rem;}
+.copy-btns{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.btn-copy-platform{padding:0.4rem 0.85rem;border:none;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.3rem;}
+.btn-copy-tiktok{background:#010101;color:#fff;}
+.btn-copy-instagram{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}
+.btn-copy-general{background:#0D1F35;color:#fff;}
+.btn-delete-history{background:transparent;color:#ccc;border:none;font-size:0.75rem;cursor:pointer;padding:0.2rem 0.4rem;}
+.btn-delete-history:hover{color:#c00;}
+.history-empty{font-size:0.78rem;color:#aaa;text-align:center;padding:1rem;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:#0D1F35;margin-bottom:0.35rem;}
+.modal-sub{font-size:0.72rem;color:#888;margin-bottom:1rem;}
+.modal-caption{font-size:0.78rem;color:#0D1F35;line-height:1.6;white-space:pre-wrap;background:#F8FAFC;border:0.5px solid #e0e0e0;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;}
+.modal-tags{font-size:0.72rem;color:#1B5E8A;margin-bottom:1rem;}
+.modal-btns{display:flex;flex-direction:column;gap:0.5rem;}
+.modal-btn{padding:0.65rem 1rem;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.4rem;text-decoration:none;}
+.modal-btn-tiktok{background:#010101;color:#fff;}
+.modal-btn-instagram{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}
+.modal-btn-copy{background:#F8FAFC;color:#0D1F35;border:0.5px solid #e0e0e0;}
+.modal-close{width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;color:#999;border:none;font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;}
+
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-badge">OneSide<span>Australia</span></div>
+  <div>
+    <div class="topbar-title">Content Studio</div>
+    <div class="topbar-sub">Generate · Review · Schedule</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="steps">
+    <div class="step-tab active" id="tab1">1 · Setup</div>
+    <div class="step-tab" id="tab2">2 · Choose</div>
+    <div class="step-tab" id="tab3">3 · Review & Schedule</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- STEP 1                                                  -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="step1">
+    <div class="card">
+      <div class="section-label">Content Pillar</div>
+      <div class="pillar-grid" id="pillar-grid">
+        <div class="pillar-tile selected" data-pillar="Educate">📚 Educate</div>
+        <div class="pillar-tile" data-pillar="Empower">💪 Empower</div>
+        <div class="pillar-tile" data-pillar="Connect">🤝 Connect</div>
+        <div class="pillar-tile" data-pillar="Expose">🔦 Expose</div>
+        <div class="pillar-tile" data-pillar="Advocate">📣 Advocate</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Post Format</div>
+      <div class="format-grid">
+        <div class="format-tile selected" data-format="typewriter">
+          <div class="format-icon">📱</div>
+          <div class="format-name">Typewriter</div>
+        </div>
+        <div class="format-tile" data-format="block">
+          <div class="format-icon">🟥</div>
+          <div class="format-name">Block Colour</div>
+        </div>
+        <div class="format-tile" data-format="image">
+          <div class="format-icon">🖼️</div>
+          <div class="format-name">Image + Overlay</div>
+        </div>
+        <div class="format-tile" data-format="carousel">
+          <div class="format-icon">🎠</div>
+          <div class="format-name">Carousel</div>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:0.85rem;">Colour Scheme</div>
+      <div class="colour-grid" id="colour-grid">
+        <div style="position:relative;margin-right:0.5rem;">
+          <div class="colour-tile selected" data-colour="midnight" style="background:#0D1F35;"></div>
+          <div class="colour-label" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:0.55rem;white-space:nowrap;color:#666;">Midnight</div>
+        </div>
+        <div style="position:relative;margin-right:0.5rem;">
+          <div class="colour-tile" data-colour="coral" style="background:#D4614E;"></div>
+          <div class="colour-label" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:0.55rem;white-space:nowrap;color:#666;">Coral</div>
+        </div>
+        <div style="position:relative;margin-right:0.5rem;">
+          <div class="colour-tile" data-colour="offwhite" style="background:#F8FAFC;border:1px solid #ddd;"></div>
+          <div class="colour-label" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:0.55rem;white-space:nowrap;color:#666;">Off-white</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Platform</div>
+      <div class="setup-grid">
+        <div class="field-group">
+          <label class="field-label">Platform</label>
+          <select class="sel" id="setup-platform">
+            <option>TikTok</option>
+            <option>Instagram</option>
+            <option>TikTok + Instagram</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Tone</label>
+          <select class="sel" id="setup-tone">
+            <option>Conversational & warm</option>
+            <option>Authoritative & direct</option>
+            <option>Urgent & eye-opening</option>
+            <option>Encouraging & positive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-generate" id="generateBtn" onclick="generateContent()">✦ Generate 3 post options</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- STEP 2                                                  -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="step2" class="hidden">
+    <div class="card">
+      <div class="section-label">Choose a post</div>
+      <div id="loading-area" class="loading hidden">
+        <div class="spinner"></div>
+        <div>Generating your posts...</div>
+      </div>
+      <div class="options-grid" id="options-grid"></div>
+      <div style="display:flex;gap:0.6rem;margin-top:0.85rem;">
+        <button class="btn-regen" onclick="generateContent()">↺ Generate 3 new options</button>
+        <button class="btn-regen" style="color:#999;border-color:#ddd;" onclick="goToStep(1)">← Start over</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- STEP 3                                                  -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div id="step3" class="hidden">
+    <div class="card">
+      <div class="section-label">Preview & Edit</div>
+      <div class="review-layout">
+
+        <!-- PHONE PREVIEW -->
+        <div class="phone">
+          <div class="screen" id="preview-screen">
+            <div class="overlay" id="preview-overlay"></div>
+            <div class="tiktok-ui">
+              <div class="tiktok-back"><div class="back-arrow"></div></div>
+              <div style="display:flex;gap:3px;">
+                <div style="width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,0.8);"></div>
+                <div style="width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,0.8);"></div>
+                <div style="width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,0.8);"></div>
+              </div>
+            </div>
+            <div class="tiktok-side" id="preview-side">
+              <div class="side-icon"><div class="side-circle">♡</div><div class="side-lbl">0</div></div>
+              <div class="side-icon"><div class="side-circle" style="font-size:9px;">💬</div><div class="side-lbl">0</div></div>
+              <div class="side-icon"><div class="side-circle" style="font-size:9px;">↗</div><div class="side-lbl">Share</div></div>
+            </div>
+
+            <!-- Standard content layer (typewriter/block/image) -->
+            <div class="content-layer" id="content-layer">
+              <div class="pill"><span class="pill-text" id="preview-label">Child Safety in Sport</span></div>
+              <div class="headline-preview" id="preview-headline"><span id="typed-h"></span><span class="cursor" id="cur1"></span></div>
+              <div class="subline-preview" id="preview-subline"><span id="typed-s"></span><span class="cursor" id="cur2" style="display:none;"></span></div>
+            </div>
+
+            <!-- Carousel layer -->
+            <div id="carousel-layer" class="hidden" style="position:absolute;inset:0;z-index:5;">
+              <div class="carousel-screen" id="carousel-track"></div>
+              <div class="carousel-dots" id="carousel-dots"></div>
+            </div>
+
+            <div class="logo-sm"><span class="logo-sm-t">OneSide</span><span class="logo-sm-s">Australia</span></div>
+            <div class="tiktok-bottom">
+              <div class="profile-row">
+                <div class="avatar">O</div>
+                <span class="handle">@oneside.australia</span>
+                <button class="follow-btn">Follow</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EDIT PANEL -->
+        <div>
+          <div class="editable-block">
+            <div class="edit-label">Label Pill</div>
+            <input class="edit-field" id="edit-label" style="height:34px;resize:none;" oninput="syncPreview()">
+          </div>
+          <div class="editable-block">
+            <div class="edit-label">Headline</div>
+            <textarea class="edit-field headline" id="edit-headline" oninput="syncPreview()"></textarea>
+          </div>
+          <div class="editable-block">
+            <div class="edit-label">Subline</div>
+            <textarea class="edit-field" id="edit-subline" style="min-height:50px;" oninput="syncPreview()"></textarea>
+          </div>
+          <div class="editable-block">
+            <div class="edit-label">Caption</div>
+            <textarea class="edit-field caption" id="edit-caption"></textarea>
+            <div class="char-count" id="cap-count"></div>
+          </div>
+          <div class="editable-block">
+            <div class="edit-label">Hashtags <span style="font-weight:400;color:#aaa;font-size:0.62rem;text-transform:none;">(tap to remove)</span></div>
+            <div class="hashtag-row" id="hashtag-row"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Schedule</div>
+      <div class="schedule-grid">
+        <div class="field-group">
+          <label class="field-label">Platform</label>
+          <select class="sel" id="sched-platform">
+            <option>TikTok</option>
+            <option>Instagram</option>
+            <option>TikTok + Instagram</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Post date</label>
+          <input type="date" id="sched-date">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Post time (AEST)</label>
+          <input type="time" id="sched-time" value="07:00">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Content pillar</label>
+          <select class="sel" id="sched-pillar">
+            <option>Educate</option>
+            <option>Empower</option>
+            <option>Connect</option>
+            <option>Expose</option>
+            <option>Advocate</option>
+          </select>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn-back" onclick="goToStep(2)">← Back</button>
+        <button class="btn-approve" id="approveBtn" onclick="approve()">✓ Approve & schedule</button>
+      </div>
+      <div class="approved-banner" id="approved-banner">
+        <div class="approved-title">✓ Post approved and scheduled</div>
+        <div class="approved-detail" id="approved-detail"></div>
+        <button class="copy-all-btn" onclick="copyApproved()">Copy caption + hashtags</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card" id="history-card" style="margin-top:0.5rem;">
+    <div class="section-label" style="cursor:pointer;" onclick="toggleHistory()">
+      📋 Post History <span id="history-count" style="font-weight:400;color:#aaa;text-transform:none;font-size:0.68rem;"></span>
+      <span id="history-chevron" style="float:right;">▼</span>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- COPY MODAL -->
+<div class="modal-bg" id="copy-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-caption" id="modal-caption"></div>
+    <div class="modal-tags" id="modal-tags"></div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-tiktok" onclick="copyAndOpen('tiktok')">📱 Copy & open TikTok</button>
+      <button class="modal-btn modal-btn-instagram" onclick="copyAndOpen('instagram')">📸 Copy & open Instagram</button>
+      <button class="modal-btn modal-btn-copy" onclick="copyOnly()">📋 Just copy to clipboard</button>
+    </div>
+    <button class="modal-close" onclick="closeModal()">✕ Close</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────
+const GENERATE_API_URL  = '/api/generate';
+const CALENDAR_API_URL  = '/api/calendar';
+
+// ── STATE ───────────────────────────────────────────────────────────
+let selectedPillar  = 'Educate';
+let selectedFormat  = 'typewriter';
+let selectedColour  = 'midnight';
+let generatedOptions = [];
+let activeTags      = [];
+let animT           = null;
+let carouselIndex   = 0;
+
+// ── COLOUR MAP ──────────────────────────────────────────────────────
+const colours = {
+  midnight: { bg: '#0D1F35', text: '#ffffff', overlay: null },
+  coral:    { bg: '#D4614E', text: '#ffffff', overlay: null },
+  offwhite: { bg: '#F8FAFC', text: '#0D1F35', overlay: null },
+};
+
+// ── IMAGE BACKGROUNDS (for image+overlay format) ─────────────────
+const imageBgs = [
+  'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80', // kids sport
+  'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&q=80', // team huddle
+  'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=80', // football
+];
+let currentImageBg = imageBgs[0];
+
+// ── STEP NAVIGATION ─────────────────────────────────────────────────
+function goToStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step'+i).classList.toggle('hidden', i !== n);
+    const tab = document.getElementById('tab'+i);
+    tab.classList.remove('active','done');
+    if(i === n) tab.classList.add('active');
+    else if(i < n) tab.classList.add('done');
+  });
+}
+
+// ── PILLAR TILES ────────────────────────────────────────────────────
+document.getElementById('pillar-grid').addEventListener('click', e => {
+  const tile = e.target.closest('.pillar-tile');
+  if(!tile) return;
+  document.querySelectorAll('.pillar-tile').forEach(t => t.classList.remove('selected'));
+  tile.classList.add('selected');
+  selectedPillar = tile.dataset.pillar;
+});
+
+// ── FORMAT TILES ────────────────────────────────────────────────────
+document.getElementById('step1').addEventListener('click', e => {
+  const ft = e.target.closest('.format-tile');
+  if(!ft) return;
+  document.querySelectorAll('.format-tile').forEach(t => t.classList.remove('selected'));
+  ft.classList.add('selected');
+  selectedFormat = ft.dataset.format;
+});
+
+// ── COLOUR TILES ────────────────────────────────────────────────────
+document.getElementById('colour-grid').addEventListener('click', e => {
+  const ct = e.target.closest('.colour-tile');
+  if(!ct) return;
+  document.querySelectorAll('.colour-tile').forEach(t => t.classList.remove('selected'));
+  ct.classList.add('selected');
+  selectedColour = ct.dataset.colour;
+});
+
+// ── GENERATE CONTENT ────────────────────────────────────────────────
+async function generateContent() {
+  const platform = document.getElementById('setup-platform').value;
+  const tone     = document.getElementById('setup-tone').value;
+
+  goToStep(2);
+  document.getElementById('options-grid').innerHTML = '';
+  document.getElementById('loading-area').classList.remove('hidden');
+  document.getElementById('generateBtn').disabled = true;
+
+  const prompt = `You are a social media content creator for OneSide Australia, a child safety consultancy focused on community sport.
+
+Generate 3 different post options for:
+- Platform: ${platform}
+- Content Pillar: ${selectedPillar}
+- Format: ${selectedFormat}
+- Tone: ${tone}
+
+Each option must have:
+- label: short 2-4 word topic label (e.g. "Child Safety in Sport")
+- headline: punchy serif headline, use line breaks with \\n, 2-4 lines, 3-6 words per line
+- subline: one italic sentence max 12 words
+- caption: 3-5 short paragraphs, conversational, educational, ends with a clear CTA, include 1-2 relevant emojis
+- hashtags: array of 8-10 relevant hashtags WITHOUT the # symbol
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "options": [
+    {
+      "label": "...",
+      "headline": "...",
+      "subline": "...",
+      "caption": "...",
+      "hashtags": ["tag1","tag2"]
+    },
+    { ... },
+    { ... }
+  ]
+}`;
+
+  try {
+    const res = await fetch(GENERATE_API_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    const text = data.text;
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch[0]);
+    generatedOptions = parsed.options;
+
+    document.getElementById('loading-area').classList.add('hidden');
+    renderOptions();
+  } catch(err) {
+    document.getElementById('loading-area').classList.add('hidden');
+    document.getElementById('options-grid').innerHTML = `<div style="color:#c00;font-size:0.8rem;padding:1rem;">Error generating content: ${err.message}</div>`;
+  }
+
+  document.getElementById('generateBtn').disabled = false;
+}
+
+function renderOptions() {
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  generatedOptions.forEach((opt, i) => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    card.innerHTML = `
+      <div class="option-num">Option ${i+1}</div>
+      <div class="option-headline">${opt.headline.replace(/\n/g,'<br>')}</div>
+      <div class="option-subline">${opt.subline}</div>
+      <div class="option-caption">${opt.caption}</div>
+      <button class="btn-use" onclick="selectOption(${i})">Use this post →</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── SELECT OPTION → STEP 3 ──────────────────────────────────────────
+function selectOption(i) {
+  const opt = generatedOptions[i];
+  document.getElementById('edit-label').value   = opt.label;
+  document.getElementById('edit-headline').value = opt.headline;
+  document.getElementById('edit-subline').value  = opt.subline;
+  document.getElementById('edit-caption').value  = opt.caption;
+  activeTags = [...opt.hashtags];
+  renderTags();
+  updateCharCount();
+
+  // sync sched-pillar
+  document.getElementById('sched-pillar').value = selectedPillar;
+  document.getElementById('sched-platform').value = document.getElementById('setup-platform').value;
+
+  // default date = tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('sched-date').value = tomorrow.toISOString().split('T')[0];
+
+  goToStep(3);
+  applyPreviewStyle();
+  syncPreview();
+}
+
+// ── PREVIEW STYLING ─────────────────────────────────────────────────
+function applyPreviewStyle() {
+  const screen  = document.getElementById('preview-screen');
+  const overlay = document.getElementById('preview-overlay');
+  const hl      = document.getElementById('preview-headline');
+  const sl      = document.getElementById('preview-subline');
+  const cl      = document.getElementById('content-layer');
+  const cLayer  = document.getElementById('carousel-layer');
+  const col     = colours[selectedColour];
+
+  // reset
+  screen.style.background = '';
+  screen.style.backgroundImage = '';
+  overlay.style.background = 'none';
+  cl.classList.remove('hidden');
+  cLayer.classList.add('hidden');
+
+  if(selectedFormat === 'typewriter' || selectedFormat === 'block') {
+    screen.style.background = col.bg;
+    hl.style.color = col.text;
+    sl.style.color = col.text;
+  } else if(selectedFormat === 'image') {
+    screen.style.backgroundImage = `url(${currentImageBg})`;
+    screen.style.backgroundSize = 'cover';
+    screen.style.backgroundPosition = 'center';
+    overlay.style.background = col.bg;
+    overlay.style.opacity = '0.78';
+    hl.style.color = '#fff';
+    sl.style.color = '#fff';
+  } else if(selectedFormat === 'carousel') {
+    screen.style.background = col.bg;
+    cl.classList.add('hidden');
+    cLayer.classList.remove('hidden');
+    buildCarousel(col);
+    return;
+  }
+
+  if(selectedFormat === 'typewriter') {
+    startAnim(
+      document.getElementById('edit-headline').value,
+      document.getElementById('edit-subline').value
+    );
+  } else {
+    document.getElementById('typed-h').innerHTML = document.getElementById('edit-headline').value.replace(/\n/g,'<br>');
+    document.getElementById('typed-s').textContent = document.getElementById('edit-subline').value;
+    document.getElementById('cur1').style.display = 'none';
+    document.getElementById('cur2').style.display = 'none';
+  }
+}
+
+// ── CAROUSEL ────────────────────────────────────────────────────────
+function buildCarousel(col) {
+  const headline = document.getElementById('edit-headline').value;
+  const subline  = document.getElementById('edit-subline').value;
+  const caption  = document.getElementById('edit-caption').value;
+  const label    = document.getElementById('edit-label').value;
+  const lines    = headline.split('\n').filter(l => l.trim());
+
+  const slides = [
+    { pill: label, text: headline, sub: subline },
+    ...lines.map(l => ({ pill: label, text: l, sub: '' })),
+    { pill: 'Follow for more', text: 'onesideaustralia.com.au', sub: caption.split('\n')[0] }
+  ].slice(0,5);
+
+  const track = document.getElementById('carousel-track');
+  const dots  = document.getElementById('carousel-dots');
+  track.innerHTML = '';
+  dots.innerHTML  = '';
+
+  slides.forEach((s, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'carousel-slide';
+    slide.style.background = col.bg;
+    slide.innerHTML = `
+      <div class="pill" style="margin-bottom:6px;"><span class="pill-text">${s.pill}</span></div>
+      <div style="font-family:'DM Serif Display',serif;font-size:14px;color:${col.text};line-height:1.25;margin-bottom:6px;">${s.text.replace(/\n/g,'<br>')}</div>
+      ${s.sub ? `<div style="font-size:6.5px;color:${col.text};opacity:0.7;font-style:italic;">${s.sub}</div>` : ''}
+    `;
+    track.appendChild(slide);
+
+    const dot = document.createElement('div');
+    dot.className = 'carousel-dot' + (i===0?' active':'');
+    dots.appendChild(dot);
+  });
+
+  carouselIndex = 0;
+  track.style.transform = 'translateX(0)';
+  track.onclick = () => {
+    carouselIndex = (carouselIndex+1) % slides.length;
+    track.style.transform = `translateX(-${carouselIndex*100}%)`;
+    dots.querySelectorAll('.carousel-dot').forEach((d,i) => d.classList.toggle('active', i===carouselIndex));
+  };
+}
+
+// ── SYNC PREVIEW ────────────────────────────────────────────────────
+function syncPreview() {
+  document.getElementById('preview-label').textContent = document.getElementById('edit-label').value;
+
+  if(selectedFormat === 'carousel') {
+    buildCarousel(colours[selectedColour]);
+    return;
+  }
+
+  if(selectedFormat === 'typewriter') {
+    startAnim(
+      document.getElementById('edit-headline').value,
+      document.getElementById('edit-subline').value
+    );
+  } else {
+    document.getElementById('typed-h').innerHTML = document.getElementById('edit-headline').value.replace(/\n/g,'<br>');
+    document.getElementById('typed-s').textContent = document.getElementById('edit-subline').value;
+    document.getElementById('cur1').style.display = 'none';
+    document.getElementById('cur2').style.display = 'none';
+  }
+}
+
+// ── TYPEWRITER ANIMATION ────────────────────────────────────────────
+function typeLines(text, el, speed, done) {
+  const lines = text.split('\n');
+  let li=0, ci=0;
+  el.innerHTML='';
+  function next() {
+    if(li>=lines.length){ done&&done(); return; }
+    const line = lines[li];
+    if(ci<line.length){
+      let html='';
+      for(let i=0;i<li;i++) html+=lines[i]+'<br>';
+      html+=lines[li].substring(0,ci+1);
+      el.innerHTML=html; ci++;
+      animT=setTimeout(next, speed+Math.random()*40-20);
+    } else { li++; ci=0; animT=setTimeout(next,200); }
+  }
+  next();
+}
+
+function typeSimple(text, el, speed, done) {
+  let i=0; el.textContent='';
+  function next() {
+    if(i>=text.length){ done&&done(); return; }
+    el.textContent+=text[i]; i++;
+    animT=setTimeout(next, speed+Math.random()*25-12);
+  }
+  next();
+}
+
+function startAnim(headlineText, sublineText) {
+  if(animT) clearTimeout(animT);
+  document.getElementById('typed-h').innerHTML='';
+  document.getElementById('typed-s').textContent='';
+  document.getElementById('cur1').style.display='inline-block';
+  document.getElementById('cur2').style.display='none';
+  animT=setTimeout(()=>{
+    typeLines(headlineText, document.getElementById('typed-h'), 55, ()=>{
+      document.getElementById('cur1').style.display='none';
+      document.getElementById('cur2').style.display='inline-block';
+      animT=setTimeout(()=>{
+        typeSimple(sublineText, document.getElementById('typed-s'), 30, ()=>{
+          animT=setTimeout(()=>{ document.getElementById('cur2').style.display='none'; }, 1200);
+        });
+      }, 400);
+    });
+  }, 300);
+}
+
+// ── HASHTAGS ────────────────────────────────────────────────────────
+function renderTags() {
+  const row = document.getElementById('hashtag-row');
+  row.innerHTML='';
+  activeTags.forEach((tag,i)=>{
+    const span=document.createElement('span');
+    span.className='ht';
+    span.textContent='#'+tag;
+    span.onclick=()=>{ activeTags.splice(i,1); renderTags(); };
+    row.appendChild(span);
+  });
+}
+
+// ── CHAR COUNT ──────────────────────────────────────────────────────
+function updateCharCount() {
+  const cap=document.getElementById('edit-caption').value;
+  document.getElementById('cap-count').textContent=cap.length+' characters';
+}
+document.getElementById('edit-caption').addEventListener('input', updateCharCount);
+
+// ── APPROVE ─────────────────────────────────────────────────────────
+async function approve() {
+  const platform = document.getElementById('sched-platform').value;
+  const date     = document.getElementById('sched-date').value;
+  const time     = document.getElementById('sched-time').value;
+  const pillar   = document.getElementById('sched-pillar').value;
+  const headline = document.getElementById('edit-headline').value;
+  const caption  = document.getElementById('edit-caption').value;
+  const hashtags = activeTags.map(t=>'#'+t).join(' ');
+
+  if(!date){ alert('Please pick a post date.'); return; }
+
+  const btn=document.getElementById('approveBtn');
+  btn.disabled=true; btn.textContent='Scheduling...';
+
+  try {
+    const response=await fetch(CALENDAR_API_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({platform,date,time,pillar,headline,caption,hashtags})
+    });
+    const result=await response.json();
+
+    if(result.success){
+      const d=new Date(date);
+      const dateStr=d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      document.getElementById('approved-detail').innerHTML=
+        `<strong>${platform}</strong> · ${dateStr} at ${time} AEST<br>Pillar: ${pillar} · Format: ${selectedFormat}<br>✅ Added to Outlook calendar`;
+      document.getElementById('approved-banner').classList.add('show');
+
+      // Save to history
+      saveToHistory({ platform, date, time, pillar, headline, caption, hashtags, format: selectedFormat, colour: selectedColour });
+    } else {
+      alert('Calendar event failed: '+(result.error||'Unknown error'));
+    }
+  } catch(err) {
+    alert('Could not reach scheduling API: '+err.message);
+  }
+
+  btn.disabled=false; btn.textContent='✓ Approve & schedule';
+}
+
+// ── COPY ─────────────────────────────────────────────────────────────
+function copyApproved() {
+  const caption=document.getElementById('edit-caption').value;
+  const tags=activeTags.map(t=>'#'+t).join(' ');
+  navigator.clipboard.writeText(caption+'\n\n'+tags);
+  openModal({
+    platform: document.getElementById('sched-platform').value,
+    date: document.getElementById('sched-date').value,
+    time: document.getElementById('sched-time').value,
+    headline: document.getElementById('edit-headline').value,
+    caption, hashtags: tags
+  });
+}
+
+// ── HISTORY ──────────────────────────────────────────────────────────
+function saveToHistory(post) {
+  const history = getHistory();
+  post.id = Date.now();
+  history.unshift(post);
+  localStorage.setItem('oneside_posts', JSON.stringify(history));
+  renderHistory();
+}
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('oneside_posts') || '[]'); } catch{ return []; }
+}
+
+function deleteFromHistory(id) {
+  const history = getHistory().filter(p => p.id !== id);
+  localStorage.setItem('oneside_posts', JSON.stringify(history));
+  renderHistory();
+}
+
+let historyOpen = true;
+function toggleHistory() {
+  historyOpen = !historyOpen;
+  document.getElementById('history-list').style.display = historyOpen ? 'block' : 'none';
+  document.getElementById('history-chevron').textContent = historyOpen ? '▼' : '▶';
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const list = document.getElementById('history-list');
+  const count = document.getElementById('history-count');
+  count.textContent = history.length ? `(${history.length} post${history.length>1?'s':''})` : '';
+
+  if(!history.length) {
+    list.innerHTML = '<div class="history-empty">No posts yet — approved posts will appear here.</div>';
+    return;
+  }
+
+  list.innerHTML = history.map(p => {
+    const d = new Date(p.date);
+    const dateStr = d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+    return `
+    <div class="history-item">
+      <div class="history-item-header" onclick="toggleHistoryItem(${p.id})">
+        <div>
+          <div class="history-meta">${p.platform} · ${dateStr} at ${p.time} · ${p.pillar} · ${p.format}</div>
+          <div class="history-headline">${p.headline.replace(/\n/g,' · ')}</div>
+        </div>
+        <button class="btn-delete-history" onclick="event.stopPropagation();deleteFromHistory(${p.id})">✕</button>
+      </div>
+      <div class="history-body" id="hbody-${p.id}">
+        <div class="history-caption">${p.caption}</div>
+        <div class="history-tags">${p.hashtags}</div>
+        <div class="copy-btns">
+          <button class="btn-copy-platform btn-copy-tiktok" onclick="openModalFromHistory(${p.id})">📱 Copy & post</button>
+          <button class="btn-copy-platform btn-copy-general" onclick="copyHistoryItem(${p.id})">📋 Copy only</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHistoryItem(id) {
+  const body = document.getElementById('hbody-'+id);
+  body.classList.toggle('open');
+}
+
+function copyHistoryItem(id) {
+  const post = getHistory().find(p => p.id === id);
+  if(!post) return;
+  navigator.clipboard.writeText(post.caption + '\n\n' + post.hashtags);
+  alert('Copied to clipboard!');
+}
+
+function openModalFromHistory(id) {
+  const post = getHistory().find(p => p.id === id);
+  if(post) openModal(post);
+}
+
+// ── COPY MODAL ────────────────────────────────────────────────────────
+let modalPost = null;
+function openModal(post) {
+  modalPost = post;
+  const d = new Date(post.date);
+  const dateStr = d.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('modal-title').textContent = post.headline.replace(/\n/g,' · ');
+  document.getElementById('modal-sub').textContent = `${post.platform} · ${dateStr} at ${post.time}`;
+  document.getElementById('modal-caption').textContent = post.caption;
+  document.getElementById('modal-tags').textContent = post.hashtags;
+  document.getElementById('copy-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('copy-modal').classList.remove('show');
+}
+
+function copyAndOpen(platform) {
+  if(!modalPost) return;
+  navigator.clipboard.writeText(modalPost.caption + '\n\n' + modalPost.hashtags);
+  const urls = {
+    tiktok: 'https://www.tiktok.com/upload',
+    instagram: 'https://www.instagram.com/'
+  };
+  window.open(urls[platform], '_blank');
+  closeModal();
+}
+
+function copyOnly() {
+  if(!modalPost) return;
+  navigator.clipboard.writeText(modalPost.caption + '\n\n' + modalPost.hashtags);
+  closeModal();
+  alert('Copied to clipboard!');
+}
+
+// ── INIT HISTORY ──────────────────────────────────────────────────────
+renderHistory();
+</script>
+</body>
+</html>
