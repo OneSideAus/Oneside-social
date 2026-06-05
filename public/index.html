@@ -184,9 +184,9 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .modal-close{width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;color:#999;border:none;font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;}
 
 /* FULLSCREEN PREVIEW */
-.fullscreen-preview{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#000;}
+.fullscreen-preview{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:#000;overflow:hidden;}
 .fullscreen-preview.show{display:block;}
-.fs-screen{width:100%;height:100%;position:relative;overflow:hidden;}
+.fs-screen{width:100vw;height:100vh;position:relative;overflow:hidden;}
 .fs-overlay{position:absolute;inset:0;}
 .fs-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8vw 7vw 18vw;}
 .fs-pill{display:inline-flex;background:#D4614E;padding:3px 10px;border-radius:3px;margin-bottom:4vw;align-self:flex-start;}
