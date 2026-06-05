@@ -188,7 +188,7 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .fullscreen-preview.show{display:flex;}
 .fs-screen{width:100vw;height:100vh;position:relative;overflow:hidden;}
 .fs-overlay{position:absolute;inset:0;}
-.fs-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8vw 7vw 12vw;overflow-y:auto;scrollbar-width:none;}
+.fs-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-start;padding:18vw 7vw 12vw;overflow-y:auto;scrollbar-width:none;}
 .fs-content::-webkit-scrollbar{display:none;}
 .fs-pill{display:inline-flex;background:#D4614E;padding:3px 10px;border-radius:3px;margin-bottom:4vw;align-self:flex-start;}
 .fs-pill-text{font-size:3vw;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;}
@@ -1105,7 +1105,7 @@ function fsTypeSimple(text, el, speed, done) {
 function fsTypeScrolling(text, el, container, speed) {
   // Type full caption continuously, scrolling container up as text grows
   let i = 0;
-  el.style.fontSize = '3.8vw';
+  el.style.fontSize = '4.8vw';
   el.style.lineHeight = '1.75';
   el.style.fontStyle = 'normal';
   el.style.opacity = '1';
