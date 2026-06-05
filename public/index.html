@@ -1051,9 +1051,8 @@ function openFullscreen() {
 
   document.getElementById('fs-preview').classList.add('show');
   const closeBtn = document.getElementById('fs-close-btn');
-  closeBtn.classList.remove('fade');
+  closeBtn.classList.add('fade');
   clearTimeout(window.fadeBtnT);
-  window.fadeBtnT = setTimeout(() => closeBtn.classList.add('fade'), 3000);
 
   // Request fullscreen on mobile
   const el = document.getElementById('fs-preview');
