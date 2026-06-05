@@ -183,6 +183,31 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .modal-btn-copy{background:#F8FAFC;color:#0D1F35;border:0.5px solid #e0e0e0;}
 .modal-close{width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;color:#999;border:none;font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:pointer;}
 
+/* FULLSCREEN PREVIEW */
+.fullscreen-preview{display:none;position:fixed;inset:0;z-index:999;background:#000;flex-direction:column;align-items:center;justify-content:center;}
+.fullscreen-preview.show{display:flex;}
+.fs-screen{width:100vw;height:100vh;position:relative;overflow:hidden;}
+.fs-overlay{position:absolute;inset:0;}
+.fs-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8vw 7vw 18vw;}
+.fs-pill{display:inline-flex;background:#D4614E;padding:3px 10px;border-radius:3px;margin-bottom:4vw;align-self:flex-start;}
+.fs-pill-text{font-size:3vw;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;}
+.fs-headline{font-family:'DM Serif Display',serif;font-size:10vw;line-height:1.15;margin-bottom:4vw;}
+.fs-subline{font-size:4vw;font-style:italic;line-height:1.4;opacity:0.8;}
+.fs-logo{position:absolute;bottom:22vw;right:6vw;background:#D4614E;padding:3px 8px;border-bottom:1.5px double #fff;}
+.fs-logo-t{font-family:Georgia,serif;font-size:3vw;font-weight:700;color:#fff;display:block;}
+.fs-logo-s{font-family:Georgia,serif;font-size:2vw;letter-spacing:0.15em;text-transform:uppercase;color:#fff;display:block;}
+.fs-bottom{position:absolute;bottom:0;left:0;right:0;height:18vw;background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);display:flex;align-items:flex-end;padding:0 6vw 5vw;}
+.fs-avatar{width:8vw;height:8vw;border-radius:50%;background:#D4614E;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:3vw;font-weight:600;color:#fff;margin-right:2vw;}
+.fs-handle{font-size:3.5vw;color:#fff;font-weight:500;flex:1;}
+.fs-follow{background:#D4614E;border:none;color:#fff;font-size:2.5vw;font-weight:700;padding:1.5vw 3vw;border-radius:2px;}
+.fs-side{position:absolute;right:4vw;bottom:22vw;display:flex;flex-direction:column;align-items:center;gap:4vw;}
+.fs-side-icon{display:flex;flex-direction:column;align-items:center;gap:1vw;}
+.fs-side-circle{width:10vw;height:10vw;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:5vw;color:#fff;}
+.fs-side-lbl{font-size:2.5vw;color:rgba(255,255,255,0.8);}
+.fs-close{position:absolute;top:4vw;right:4vw;background:rgba(0,0,0,0.5);border:none;color:#fff;font-size:5vw;width:10vw;height:10vw;border-radius:50%;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
+.fs-cursor{display:inline-block;width:0.5vw;height:1em;background:#D4614E;vertical-align:text-bottom;animation:blink 0.7s step-end infinite;}
+.btn-fullscreen{width:100%;padding:0.65rem;background:#D4614E;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;margin-bottom:0.5rem;}
+
 .hidden{display:none!important;}
 </style>
 </head>
@@ -408,6 +433,7 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
           </select>
         </div>
       </div>
+      <button class="btn-fullscreen" onclick="openFullscreen()">▶ Preview fullscreen — tap to screen record</button>
       <div class="action-row">
         <button class="btn-back" onclick="goToStep(2)">← Back</button>
         <button class="btn-approve" id="approveBtn" onclick="approve()">✓ Approve & schedule</button>
@@ -430,6 +456,30 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
   </div>
 
 </div><!-- /container -->
+
+<!-- FULLSCREEN PREVIEW -->
+<div class="fullscreen-preview" id="fs-preview">
+  <div class="fs-screen" id="fs-screen">
+    <div class="fs-overlay" id="fs-overlay"></div>
+    <div class="fs-content" id="fs-content">
+      <div class="fs-pill"><span class="fs-pill-text" id="fs-label"></span></div>
+      <div class="fs-headline" id="fs-headline"><span id="fs-typed-h"></span><span class="fs-cursor" id="fs-cur1"></span></div>
+      <div class="fs-subline" id="fs-subline"><span id="fs-typed-s"></span><span class="fs-cursor" id="fs-cur2" style="display:none;"></span></div>
+    </div>
+    <div class="fs-logo"><span class="fs-logo-t">OneSide</span><span class="fs-logo-s">Australia</span></div>
+    <div class="fs-side">
+      <div class="fs-side-icon"><div class="fs-side-circle">♡</div><div class="fs-side-lbl">0</div></div>
+      <div class="fs-side-icon"><div class="fs-side-circle">💬</div><div class="fs-side-lbl">0</div></div>
+      <div class="fs-side-icon"><div class="fs-side-circle">↗</div><div class="fs-side-lbl">Share</div></div>
+    </div>
+    <div class="fs-bottom">
+      <div class="fs-avatar">O</div>
+      <span class="fs-handle">@oneside.australia</span>
+      <button class="fs-follow">Follow</button>
+    </div>
+    <button class="fs-close" onclick="closeFullscreen()">✕</button>
+  </div>
+</div>
 
 <!-- COPY MODAL -->
 <div class="modal-bg" id="copy-modal">
@@ -973,6 +1023,94 @@ function copyOnly() {
   navigator.clipboard.writeText(modalPost.caption + '\n\n' + modalPost.hashtags);
   closeModal();
   alert('Copied to clipboard!');
+}
+
+// ── FULLSCREEN PREVIEW ────────────────────────────────────────────────
+let fsAnimT = null;
+
+function openFullscreen() {
+  const col      = colours[selectedColour];
+  const headline = document.getElementById('edit-headline').value;
+  const subline  = document.getElementById('edit-subline').value;
+  const label    = document.getElementById('edit-label').value;
+
+  const screen  = document.getElementById('fs-screen');
+  const overlay = document.getElementById('fs-overlay');
+  const hl      = document.getElementById('fs-headline');
+  const sl      = document.getElementById('fs-subline');
+
+  document.getElementById('fs-label').textContent = label;
+
+  // Apply colour/background
+  if(selectedFormat === 'image') {
+    screen.style.backgroundImage = `url(${currentImageBg})`;
+    screen.style.backgroundSize = 'cover';
+    screen.style.backgroundPosition = 'center';
+    overlay.style.background = col.bg;
+    overlay.style.opacity = '0.78';
+  } else {
+    screen.style.backgroundImage = '';
+    screen.style.background = col.bg;
+    overlay.style.background = 'none';
+  }
+
+  hl.style.color = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
+  sl.style.color = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
+
+  document.getElementById('fs-preview').classList.add('show');
+
+  // Request fullscreen on mobile
+  const el = document.getElementById('fs-preview');
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+
+  // Start animation
+  if(fsAnimT) clearTimeout(fsAnimT);
+  document.getElementById('fs-typed-h').innerHTML = '';
+  document.getElementById('fs-typed-s').textContent = '';
+  document.getElementById('fs-cur1').style.display = 'inline-block';
+  document.getElementById('fs-cur2').style.display = 'none';
+
+  if(selectedFormat === 'typewriter') {
+    fsTypeLines(headline, document.getElementById('fs-typed-h'), 55, () => {
+      document.getElementById('fs-cur1').style.display = 'none';
+      document.getElementById('fs-cur2').style.display = 'inline-block';
+      fsAnimT = setTimeout(() => {
+        fsTypeSimple(subline, document.getElementById('fs-typed-s'), 30, () => {
+          fsAnimT = setTimeout(() => { document.getElementById('fs-cur2').style.display = 'none'; }, 1200);
+        });
+      }, 400);
+    });
+  } else {
+    document.getElementById('fs-typed-h').innerHTML = headline.replace(/\n/g,'<br>');
+    document.getElementById('fs-typed-s').textContent = subline;
+    document.getElementById('fs-cur1').style.display = 'none';
+  }
+}
+
+function closeFullscreen() {
+  document.getElementById('fs-preview').classList.remove('show');
+  if(document.exitFullscreen) document.exitFullscreen();
+  else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+  if(fsAnimT) clearTimeout(fsAnimT);
+}
+
+function fsTypeLines(text, el, speed, done) {
+  const lines = text.split('\n'); let li=0, ci=0; el.innerHTML='';
+  function next() {
+    if(li>=lines.length){ done&&done(); return; }
+    if(ci<lines[li].length){
+      let html=''; for(let i=0;i<li;i++) html+=lines[i]+'<br>'; html+=lines[li].substring(0,ci+1);
+      el.innerHTML=html; ci++; fsAnimT=setTimeout(next, speed+Math.random()*40-20);
+    } else { li++; ci=0; fsAnimT=setTimeout(next,200); }
+  }
+  next();
+}
+
+function fsTypeSimple(text, el, speed, done) {
+  let i=0; el.textContent='';
+  function next() { if(i>=text.length){ done&&done(); return; } el.textContent+=text[i]; i++; fsAnimT=setTimeout(next, speed+Math.random()*25-12); }
+  next();
 }
 
 // ── INIT HISTORY ──────────────────────────────────────────────────────
