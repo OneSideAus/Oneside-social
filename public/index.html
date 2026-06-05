@@ -1046,8 +1046,8 @@ function openFullscreen() {
     overlay.style.background = 'none';
   }
 
-  hl.style.color = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
-  sl.style.color = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
+  hl.style.color = (selectedColour === 'offwhite' || selectedColour === 'coral') ? '#0D1F35' : '#F8FAFC';
+  sl.style.color = (selectedColour === 'offwhite' || selectedColour === 'coral') ? '#0D1F35' : '#F8FAFC';
 
   document.getElementById('fs-preview').classList.add('show');
   const closeBtn = document.getElementById('fs-close-btn');
@@ -1115,32 +1115,52 @@ function fsTypeSimple(text, el, speed, done) {
 }
 
 function fsTypeScrolling(text, el, container, speed) {
-  // Type full caption continuously, scrolling container up as text grows
-  let i = 0;
-  el.style.fontSize = '4.2vw';
-  el.style.lineHeight = '1.75';
-  el.style.fontStyle = 'normal';
-  el.style.opacity = '1';
-  el.textContent = '';
+  const textCol = (selectedColour === 'offwhite' || selectedColour === 'coral') ? '#0D1F35' : '#F8FAFC';
+
+  // Split caption into paragraphs and type each into its own div
+  const paragraphs = text.split(/\n\n+/).filter(p => p.trim());
+  const contentLayer = document.getElementById('fs-content');
+
+  // Remove old para divs
+  contentLayer.querySelectorAll('.fs-para').forEach(p => p.remove());
   document.getElementById('fs-cur2').style.display = 'inline-block';
 
-  function next() {
-    if(i >= text.length) {
+  let paraIndex = 0;
+
+  function typeNextPara() {
+    if(paraIndex >= paragraphs.length) {
       document.getElementById('fs-cur2').style.display = 'none';
       return;
     }
-    const ch = text[i]; i++;
-    el.textContent += ch;
-    // Smoothly scroll up so new text stays visible and headline rolls off top
-    const contentLayer = document.getElementById('fs-content');
-    contentLayer.scrollTo({ top: contentLayer.scrollHeight, behavior: 'smooth' });
-    const pause = (ch === '.' || ch === '!' || ch === '?') ? speed * 8
-                : (ch === ',') ? speed * 4
-                : (ch === '\n') ? speed * 6
-                : speed + Math.random() * 15 - 7;
-    fsAnimT = setTimeout(next, pause);
+
+    // Create a new paragraph div
+    const paraDiv = document.createElement('div');
+    paraDiv.className = 'fs-para';
+    paraDiv.style.cssText = `font-size:4.2vw;line-height:1.75;color:${textCol};margin-bottom:5vw;`;
+    contentLayer.appendChild(paraDiv);
+
+    const paraText = paragraphs[paraIndex]; paraIndex++;
+    let i = 0;
+
+    function nextChar() {
+      if(i >= paraText.length) {
+        // Pause between paragraphs then start next
+        contentLayer.scrollTo({ top: contentLayer.scrollHeight, behavior: 'smooth' });
+        fsAnimT = setTimeout(typeNextPara, speed * 10);
+        return;
+      }
+      const ch = paraText[i]; i++;
+      paraDiv.textContent += ch;
+      contentLayer.scrollTo({ top: contentLayer.scrollHeight, behavior: 'smooth' });
+      const pause = (ch === '.' || ch === '!' || ch === '?') ? speed * 8
+                  : (ch === ',') ? speed * 4
+                  : speed + Math.random() * 15 - 7;
+      fsAnimT = setTimeout(nextChar, pause);
+    }
+    nextChar();
   }
-  next();
+
+  typeNextPara();
 }
 
 // ── INIT HISTORY ──────────────────────────────────────────────────────
