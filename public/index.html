@@ -562,6 +562,9 @@ Respond ONLY with valid JSON in this exact format:
     });
 
     const data = await res.json();
+    if(!res.ok || !data.text) {
+      throw new Error('API returned: ' + JSON.stringify(data));
+    }
     const text = data.text;
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(jsonMatch[0]);
@@ -571,7 +574,7 @@ Respond ONLY with valid JSON in this exact format:
     renderOptions();
   } catch(err) {
     document.getElementById('loading-area').classList.add('hidden');
-    document.getElementById('options-grid').innerHTML = `<div style="color:#c00;font-size:0.8rem;padding:1rem;">Error generating content: ${err.message}</div>`;
+    document.getElementById('options-grid').innerHTML = `<div style="color:#c00;font-size:0.8rem;padding:1rem;">Error: ${err.message}</div>`;
   }
 
   document.getElementById('generateBtn').disabled = false;
