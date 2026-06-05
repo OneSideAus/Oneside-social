@@ -193,6 +193,9 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .fs-pill-text{font-size:3vw;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;}
 .fs-headline{font-family:'DM Serif Display',serif;font-size:10vw;line-height:1.15;margin-bottom:4vw;}
 .fs-subline{font-size:4vw;font-style:italic;line-height:1.4;opacity:0.8;}
+.fs-caption-roll{font-size:3.8vw;line-height:1.6;margin-top:3vw;overflow:hidden;}
+.fs-caption-line{opacity:0;transform:translateY(6px);transition:opacity 0.4s ease, transform 0.4s ease;margin-bottom:1.5vw;}
+.fs-caption-line.visible{opacity:0.9;transform:translateY(0);}
 .fs-logo{position:absolute;bottom:22vw;right:6vw;background:#D4614E;padding:3px 8px;border-bottom:1.5px double #fff;}
 .fs-logo-t{font-family:Georgia,serif;font-size:3vw;font-weight:700;color:#fff;display:block;}
 .fs-logo-s{font-family:Georgia,serif;font-size:2vw;letter-spacing:0.15em;text-transform:uppercase;color:#fff;display:block;}
@@ -465,6 +468,7 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
       <div class="fs-pill"><span class="fs-pill-text" id="fs-label"></span></div>
       <div class="fs-headline" id="fs-headline"><span id="fs-typed-h"></span><span class="fs-cursor" id="fs-cur1"></span></div>
       <div class="fs-subline" id="fs-subline"><span id="fs-typed-s"></span><span class="fs-cursor" id="fs-cur2" style="display:none;"></span></div>
+      <div class="fs-caption-roll" id="fs-caption-roll"></div>
     </div>
     <button class="fs-close" onclick="closeFullscreen()">✕</button>
   </div>
@@ -1057,18 +1061,16 @@ function openFullscreen() {
   if(fsAnimT) clearTimeout(fsAnimT);
   document.getElementById('fs-typed-h').innerHTML = '';
   document.getElementById('fs-typed-s').textContent = '';
+  document.getElementById('fs-caption-roll').innerHTML = '';
   document.getElementById('fs-cur1').style.display = 'inline-block';
   document.getElementById('fs-cur2').style.display = 'none';
 
   if(selectedFormat === 'typewriter') {
+    const caption = document.getElementById('edit-caption').value;
+    // Type headline, then roll in caption paragraphs
     fsTypeLines(headline, document.getElementById('fs-typed-h'), 55, () => {
       document.getElementById('fs-cur1').style.display = 'none';
-      document.getElementById('fs-cur2').style.display = 'inline-block';
-      fsAnimT = setTimeout(() => {
-        fsTypeSimple(subline, document.getElementById('fs-typed-s'), 30, () => {
-          fsAnimT = setTimeout(() => { document.getElementById('fs-cur2').style.display = 'none'; }, 1200);
-        });
-      }, 400);
+      fsAnimT = setTimeout(() => fsCaptionRoll(caption), 500);
     });
   } else {
     document.getElementById('fs-typed-h').innerHTML = headline.replace(/\n/g,'<br>');
@@ -1082,6 +1084,34 @@ function closeFullscreen() {
   if(document.exitFullscreen) document.exitFullscreen();
   else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
   if(fsAnimT) clearTimeout(fsAnimT);
+}
+
+function fsCaptionRoll(caption) {
+  const roll = document.getElementById('fs-caption-roll');
+  const textCol = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
+  roll.style.color = textCol;
+
+  // Split into sentences/short chunks for rolling effect
+  const sentences = caption
+    .replace(/\n+/g, ' ')
+    .match(/[^.!?]+[.!?]+/g) || caption.split('\n').filter(l => l.trim());
+
+  sentences.forEach((s, i) => {
+    const line = document.createElement('div');
+    line.className = 'fs-caption-line';
+    line.textContent = s.trim();
+    roll.appendChild(line);
+  });
+
+  const lines = roll.querySelectorAll('.fs-caption-line');
+  let i = 0;
+  function showNext() {
+    if(i >= lines.length) return;
+    lines[i].classList.add('visible');
+    i++;
+    fsAnimT = setTimeout(showNext, 1800);
+  }
+  fsAnimT = setTimeout(showNext, 300);
 }
 
 function fsTypeLines(text, el, speed, done) {
