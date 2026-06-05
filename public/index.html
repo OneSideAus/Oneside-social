@@ -193,9 +193,9 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 .fs-pill-text{font-size:3vw;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#fff;}
 .fs-headline{font-family:'DM Serif Display',serif;font-size:10vw;line-height:1.15;margin-bottom:4vw;}
 .fs-subline{font-size:4vw;font-style:italic;line-height:1.4;opacity:0.8;}
-.fs-caption-roll{font-size:3.8vw;line-height:1.6;margin-top:3vw;overflow:hidden;}
-.fs-caption-line{opacity:0;transform:translateY(6px);transition:opacity 0.4s ease, transform 0.4s ease;margin-bottom:1.5vw;}
-.fs-caption-line.visible{opacity:0.9;transform:translateY(0);}
+.fs-roll-wrap{position:absolute;inset:0;padding:8vw 7vw 6vw;overflow-y:auto;display:flex;flex-direction:column;justify-content:flex-end;scrollbar-width:none;}
+.fs-roll-wrap::-webkit-scrollbar{display:none;}
+.fs-roll-text{word-break:break-word;}
 .fs-logo{position:absolute;bottom:22vw;right:6vw;background:#D4614E;padding:3px 8px;border-bottom:1.5px double #fff;}
 .fs-logo-t{font-family:Georgia,serif;font-size:3vw;font-weight:700;color:#fff;display:block;}
 .fs-logo-s{font-family:Georgia,serif;font-size:2vw;letter-spacing:0.15em;text-transform:uppercase;color:#fff;display:block;}
@@ -464,11 +464,8 @@ select.sel,input[type=date],input[type=time]{width:100%;font-family:'DM Sans',sa
 <div class="fullscreen-preview" id="fs-preview">
   <div class="fs-screen" id="fs-screen">
     <div class="fs-overlay" id="fs-overlay"></div>
-    <div class="fs-content" id="fs-content">
-      <div class="fs-pill"><span class="fs-pill-text" id="fs-label"></span></div>
-      <div class="fs-headline" id="fs-headline"><span id="fs-typed-h"></span><span class="fs-cursor" id="fs-cur1"></span></div>
-      <div class="fs-subline" id="fs-subline"><span id="fs-typed-s"></span><span class="fs-cursor" id="fs-cur2" style="display:none;"></span></div>
-      <div class="fs-caption-roll" id="fs-caption-roll"></div>
+    <div class="fs-roll-wrap" id="fs-roll-wrap">
+      <div class="fs-roll-text" id="fs-roll-text"></div>
     </div>
     <button class="fs-close" onclick="closeFullscreen()">✕</button>
   </div>
@@ -1059,23 +1056,22 @@ function openFullscreen() {
 
   // Start animation
   if(fsAnimT) clearTimeout(fsAnimT);
-  document.getElementById('fs-typed-h').innerHTML = '';
-  document.getElementById('fs-typed-s').textContent = '';
-  document.getElementById('fs-caption-roll').innerHTML = '';
-  document.getElementById('fs-cur1').style.display = 'inline-block';
-  document.getElementById('fs-cur2').style.display = 'none';
+  const rollEl = document.getElementById('fs-roll-text');
+  const wrap   = document.getElementById('fs-roll-wrap');
+  const textCol = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
+  rollEl.style.color = textCol;
+  rollEl.innerHTML = '';
 
   if(selectedFormat === 'typewriter') {
     const caption = document.getElementById('edit-caption').value;
-    // Type headline, then roll in caption paragraphs
-    fsTypeLines(headline, document.getElementById('fs-typed-h'), 55, () => {
-      document.getElementById('fs-cur1').style.display = 'none';
-      fsAnimT = setTimeout(() => fsCaptionRoll(caption), 500);
-    });
+    // Build full text: headline + blank line + caption
+    const fullText = headline + '\n\n' + caption;
+    fsTypeRolling(fullText, rollEl, wrap, 28);
   } else {
-    document.getElementById('fs-typed-h').innerHTML = headline.replace(/\n/g,'<br>');
-    document.getElementById('fs-typed-s').textContent = subline;
-    document.getElementById('fs-cur1').style.display = 'none';
+    // Static formats — just show headline + subline
+    rollEl.style.fontFamily = "'DM Serif Display', serif";
+    rollEl.style.fontSize = '9vw';
+    rollEl.innerHTML = headline.replace(/\n/g,'<br>');
   }
 }
 
@@ -1086,49 +1082,66 @@ function closeFullscreen() {
   if(fsAnimT) clearTimeout(fsAnimT);
 }
 
-function fsCaptionRoll(caption) {
-  const roll = document.getElementById('fs-caption-roll');
-  const textCol = (selectedColour === 'offwhite') ? '#0D1F35' : '#ffffff';
-  roll.style.color = textCol;
+function fsTypeRolling(fullText, el, wrap, speed) {
+  // Build headline portion in large serif, rest in smaller sans
+  const parts = fullText.split('\n\n');
+  const headlineText = parts[0] || '';
+  const bodyText = parts.slice(1).join('\n\n');
 
-  // Split into sentences/short chunks for rolling effect
-  const sentences = caption
-    .replace(/\n+/g, ' ')
-    .match(/[^.!?]+[.!?]+/g) || caption.split('\n').filter(l => l.trim());
+  let allChars = [];
 
-  sentences.forEach((s, i) => {
-    const line = document.createElement('div');
-    line.className = 'fs-caption-line';
-    line.textContent = s.trim();
-    roll.appendChild(line);
-  });
+  // Headline chars — marked as headline
+  headlineText.split('').forEach(ch => allChars.push({ ch, type: 'headline' }));
+  if(bodyText) {
+    allChars.push({ ch: '\n\n', type: 'break' });
+    bodyText.split('').forEach(ch => allChars.push({ ch, type: 'body' }));
+  }
 
-  const lines = roll.querySelectorAll('.fs-caption-line');
   let i = 0;
-  function showNext() {
-    if(i >= lines.length) return;
-    lines[i].classList.add('visible');
-    i++;
-    fsAnimT = setTimeout(showNext, 1800);
-  }
-  fsAnimT = setTimeout(showNext, 300);
-}
+  let headlineDone = false;
 
-function fsTypeLines(text, el, speed, done) {
-  const lines = text.split('\n'); let li=0, ci=0; el.innerHTML='';
+  function renderCurrent() {
+    let headlineHtml = '';
+    let bodyHtml = '';
+    let inBody = false;
+
+    for(let j = 0; j < i; j++) {
+      const c = allChars[j];
+      if(c.type === 'break') { inBody = true; continue; }
+      const ch = c.ch === '\n' ? '<br>' : c.ch.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      if(!inBody) headlineHtml += ch;
+      else bodyHtml += ch;
+    }
+
+    el.innerHTML =
+      `<span style="font-family:'DM Serif Display',serif;font-size:9vw;line-height:1.2;display:block;margin-bottom:4vw;">${headlineHtml}</span>` +
+      (bodyHtml ? `<span style="font-family:'DM Sans',sans-serif;font-size:4vw;line-height:1.75;display:block;">${bodyHtml}</span>` : '');
+
+    // Auto-scroll wrap so latest text stays visible at bottom
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
   function next() {
-    if(li>=lines.length){ done&&done(); return; }
-    if(ci<lines[li].length){
-      let html=''; for(let i=0;i<li;i++) html+=lines[i]+'<br>'; html+=lines[li].substring(0,ci+1);
-      el.innerHTML=html; ci++; fsAnimT=setTimeout(next, speed+Math.random()*40-20);
-    } else { li++; ci=0; fsAnimT=setTimeout(next,200); }
-  }
-  next();
-}
+    if(i >= allChars.length) return;
+    const c = allChars[i];
+    i++;
 
-function fsTypeSimple(text, el, speed, done) {
-  let i=0; el.textContent='';
-  function next() { if(i>=text.length){ done&&done(); return; } el.textContent+=text[i]; i++; fsAnimT=setTimeout(next, speed+Math.random()*25-12); }
+    // Pause slightly at end of headline
+    if(!headlineDone && c.type === 'break') {
+      headlineDone = true;
+      renderCurrent();
+      fsAnimT = setTimeout(next, 600);
+      return;
+    }
+
+    renderCurrent();
+    // Slightly slower for body text for readability
+    const delay = c.type === 'headline'
+      ? speed + Math.random()*30 - 15
+      : speed * 0.7 + Math.random()*20 - 10;
+    fsAnimT = setTimeout(next, delay);
+  }
+
   next();
 }
 
